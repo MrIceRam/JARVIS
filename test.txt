@@ -1,0 +1,15 @@
+import keyboard
+
+print("Press 'q' to quit.")
+while True:
+    if keyboard.read_key() == 'q':
+        print("Quitting the program")
+        break
+
+
+import keyboard
+import time
+
+time.sleep(5) # Wait for 2 seconds
+keyboard.write('Hello, World!')
+keyboard.press_and_release('enter')
