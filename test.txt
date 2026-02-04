@@ -6,10 +6,14 @@ while True:
         print("Quitting the program")
         break
 
-
-import keyboard
-import time
+=====================================================
 
 time.sleep(5) # Wait for 2 seconds
 keyboard.write('Hello, World!')
 keyboard.press_and_release('enter')
+#keyboard.send("alt+F4")
+
+======================
+Есть ли какая нибудь библиотека для создание голосового помощника на python?
+
+Можно использовать vosk для распознания речи офлайн, pyaudio, speech_recognition, и т.д. Озвучить текст можно с помощью pyttsx3.
