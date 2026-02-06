@@ -14,6 +14,24 @@ keyboard.press_and_release('enter')
 #keyboard.send("alt+F4")
 
 ======================
+
 Есть ли какая нибудь библиотека для создание голосового помощника на python?
 
 Можно использовать vosk для распознания речи офлайн, pyaudio, speech_recognition, и т.д. Озвучить текст можно с помощью pyttsx3.
+
+=======================
+
+pygetwindow
+Использование pygetwindow (более точный способ)
+Позволяет свернуть текущее окно или переключиться на конкретное.
+python
+import pygetwindow as gw
+# Свернуть все окна (аналог Win+D)
+for window in gw.getAllWindows():
+    window.minimize()
+Примечание
+Для использования этих библиотек их нужно установить:
+bash
+pip install pyautogui pygetwindow
+
+
