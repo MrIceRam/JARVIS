@@ -4,24 +4,29 @@ import time
 import os
 import pygetwindow
 import pyautogui
+import asyncio
 
-StartJarvis = True
+import comands
+
+StartJarvis = False
 UserTime = time.localtime()
 
-def txt(x): #working
-    fd = os.open('./date/txt/logs.txt', os.O_RDWR | os.O_CREAT | os.O_APPEND) #"a+" \|/ a+ dont working i dk
-    if x == "space":
-        os.write(fd, " ".encode('utf-8'))
-        os.close(fd)
-        return 0
-    if x == "enter":
-        os.write(fd, "\n".encode('utf-8'))
-        os.close(fd)
-        return 0
-    else:
-        os.write(fd, f"{x}".encode('utf-8'))
-        os.close(fd)
-        return 0
+def txt(): #working
+    while True:
+        if keyboard.read_key():
+            fd = os.open('./date/txt/logs.txt', os.O_RDWR | os.O_CREAT | os.O_APPEND) #"a+" \|/ a+ dont working i dk
+            if keyboard.read_key() == "space":
+                os.write(fd, " ".encode('utf-8'))
+                os.close(fd)
+                return 0
+            if keyboard.read_key() == "enter":
+                os.write(fd, "\n".encode('utf-8'))
+                os.close(fd)
+                return 0
+            else:
+                os.write(fd, f"{keyboard.read_key()}".encode('utf-8'))
+                os.close(fd)
+                return 0
 
 def switch_to_window_by_title(window_title): #working переключение окна
     """Переключиться на окно по заголовку"""
@@ -33,11 +38,11 @@ def switch_to_window_by_title(window_title): #working переключение �
     except (IndexError, Exception) as e:
         print(f"Окно '{window_title}' не найдено: {e}")
         return False
-print(pygetwindow.getAllWindows())
+
 def go():
     while(True): 
-        print(39)
-        txt(keyboard.read_key())
+        print(UserTime[4],UserTime[5])
+        time.sleep(0.5)
             
 if StartJarvis:
     playsound.playsound("date/sound/JARVIS_start.wav", block=False) #block=False что бы не останавливал программу
@@ -45,6 +50,5 @@ if StartJarvis:
     fd = os.open('./date/txt/logs.txt', os.O_RDWR | os.O_CREAT | os.O_APPEND) #"a+" \|/ a+ dont working i dk)
     os.write(fd, f"\nUser {os.getlogin()}, Год {UserTime[0]}, Месяц {UserTime[1]}, День {UserTime[2]}, Час {UserTime[3]}, Минута {UserTime[4]}\n".encode('utf-8'))
     os.close(fd)
-    go()
 
 print("return error")

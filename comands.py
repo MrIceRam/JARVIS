@@ -25,3 +25,20 @@ def PicDota(arg):
 
 def ReadyDota():
     pyautogui.press('enter')
+
+def ReadyCs():
+    pyautogui.press('enter')
+
+def Music(arg):
+    if arg == 'пауза':
+        x = pygetwindow.getActiveWindowTitle()
+        switch_to_window_by_title('Яндекс Музыка')
+        pyautogui.press('enter')
+        switch_to_window_by_title(x)
+    if arg == 'громче':
+        x = pygetwindow.getActiveWindowTitle()
+        switch_to_window_by_title('Яндекс Музыка')
+        pyautogui.press('left')
+        switch_to_window_by_title(x)
+    else:
+        print('eblo')
