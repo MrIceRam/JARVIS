@@ -23,24 +23,22 @@ def txt(x): #working
         os.close(fd)
         return 0
 
-def switch_to_window_by_title(window_title): #working
+def switch_to_window_by_title(window_title): #working переключение окна
     """Переключиться на окно по заголовку"""
     try:
         window = pygetwindow.getWindowsWithTitle(window_title)[0]
         window.activate()
-        time.sleep(0.5)  # Даем время для переключения
+        time.sleep(0.5)  # Даем время для переключения  
         return True
     except (IndexError, Exception) as e:
         print(f"Окно '{window_title}' не найдено: {e}")
         return False
-
-switch_to_window_by_title("dota")
-
+print(pygetwindow.getAllWindows())
 def go():
-    while(True):
-        print(26)
-        if keyboard.read_key():
-            txt(keyboard.read_key())
+    while(True): 
+        print(39)
+        txt(keyboard.read_key())
+            
 if StartJarvis:
     playsound.playsound("date/sound/JARVIS_start.wav", block=False) #block=False что бы не останавливал программу
     print("hi, i am Jarvis")
