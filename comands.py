@@ -42,3 +42,6 @@ def Music(arg):
         switch_to_window_by_title(x)
     else:
         print('eblo')
+
+def WriteText(arg):
+    pyautogui.write(arg)
