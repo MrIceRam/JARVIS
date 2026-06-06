@@ -24,7 +24,10 @@ def PicDota(arg):
     switch_to_window_by_title(x)
 
 def ReadyDota():
+    x = pygetwindow.getActiveWindowTitle()
+    switch_to_window_by_title('Dota 2')
     pyautogui.press('enter')
+    switch_to_window_by_title(x)
 
 def ReadyCs():
     pyautogui.press('enter')

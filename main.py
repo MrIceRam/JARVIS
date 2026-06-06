@@ -8,7 +8,7 @@ import asyncio
 
 import comands
 
-StartJarvis = False
+StartJarvis = True
 
 def txt(): #working
     while True:
@@ -40,9 +40,7 @@ def switch_to_window_by_title(window_title): #working переключение �
 
 def go():
     while(True):
-        UserTime = time.localtime() 
-        print(UserTime[4],UserTime[5])
-        time.sleep(0.5)
+        txt()
             
 if StartJarvis:
     playsound.playsound("date/sound/JARVIS_start.wav", block=False) #block=False что бы не останавливал программу
@@ -51,5 +49,6 @@ if StartJarvis:
     UserTime = time.localtime()
     os.write(fd, f"\nUser {os.getlogin()}, Год {UserTime[0]}, Месяц {UserTime[1]}, День {UserTime[2]}, Час {UserTime[3]}, Минута {UserTime[4]}\n".encode('utf-8'))
     os.close(fd)
+    go()
 
 print("return error")
