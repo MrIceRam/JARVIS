@@ -5,6 +5,7 @@ import os
 import pygetwindow
 import pyautogui
 import asyncio
+import vosk
 
 import comands
 
