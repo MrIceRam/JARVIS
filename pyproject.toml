@@ -1,0 +1,28 @@
+[project]
+name = "jarvis"
+version = "0.1.0"
+description = "Голосовой помощник для бытовых задач под Windows"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "comtypes>=1.4.17 ; sys_platform == 'win32'",
+    "pyautogui>=0.9.54",
+    "pygetwindow>=0.0.9",
+    "sounddevice>=0.5.6",
+    "vosk>=0.3.45",
+]
+
+[project.scripts]
+jarvis = "jarvis.cli:main"
+
+[build-system]
+requires = ["uv_build>=0.9,<1"]
+build-backend = "uv_build"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.2.0",
+]

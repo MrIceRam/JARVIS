@@ -1,0 +1,21 @@
+# --- Claude: ничего из этого не должно попасть на GitHub ---
+CLAUDE.md
+CLAUDE.local.md
+claude.md
+claude.me
+.claude/
+.mcp.json
+
+# --- Python / uv ---
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+/dist/
+
+# --- Модели Vosk (десятки мегабайт, скачиваются отдельно) ---
+/models/
+
+# --- Бэкапы настроек Windows ---
+# Тут могут лежать ключи стрима OBS и пароли obs-websocket — только локально!
+/backup/
