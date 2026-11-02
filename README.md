@@ -41,7 +41,6 @@ src/jarvis/
   backup.py         сохранение/восстановление настроек Windows
   assets/sounds/    звуки
 tests/              pytest
-legacy/             старые скрипты
 ```
 
 Новая команда — функция в `src/jarvis/actions/` плюс `registry.add(...)` в её `register()`.
