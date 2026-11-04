@@ -1,6 +1,6 @@
 from PIL import Image, ImageDraw
 
-from jarvis.vision import find_green_button
+from src.vision import find_green_button
 
 GREEN = (76, 175, 80)
 

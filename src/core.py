@@ -79,7 +79,7 @@ class Assistant:
 
     def __init__(self, registry: CommandRegistry, say: Callable[[str], None] = print) -> None:
         self.registry = registry
-        self.say = say  # в программе — speech.say (голосом), в тестах — сбор ответов в список
+        self.say = say  # в программе — voice.say (голосом), в тестах — сбор ответов в список
 
     def expected_phrases(self) -> list[str]:
         """Всё, что имеет смысл распознавать: "джарвис" и "джарвис <команда>".

@@ -2,10 +2,10 @@
 
 import pygetwindow
 
-from jarvis import paths
-from jarvis.core import CommandError, CommandRegistry
-from jarvis.system import capture, click, find_window, focused, press_key
-from jarvis.vision import find_green_button
+from src import paths
+from src.core import CommandError, CommandRegistry
+from src.system import capture, click, find_window, focused, press_key
+from src.vision import find_green_button
 
 
 def find_game(title: str, process: str) -> pygetwindow.Win32Window:

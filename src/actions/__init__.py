@@ -1,7 +1,7 @@
 """Действия, которые умеет Джарвис. Каждый модуль добавляет свои команды через register()."""
 
-from jarvis.actions import games, web
-from jarvis.core import CommandRegistry
+from src.actions import games, web
+from src.core import CommandRegistry
 
 
 def register_all(registry: CommandRegistry) -> None:

@@ -2,7 +2,7 @@
 
 import webbrowser
 
-from jarvis.core import CommandError, CommandRegistry
+from src.core import CommandError, CommandRegistry
 
 # Сайт: (фразы, адрес). Новый сайт — просто ещё одна строка.
 # Фразы — русскими словами: английских "google"/"youtube" модель Vosk не знает.

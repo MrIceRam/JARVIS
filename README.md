@@ -33,12 +33,11 @@ uv run pytest                  тесты
 ## Структура
 
 ```
-src/jarvis/
+src/
   cli.py            команды jarvis / list / backup / restore / autostart
-  autostart.py      ярлык в автозагрузке Windows
   core.py           Assistant (обращение "Джарвис") и CommandRegistry (фраза -> действие)
-  voice.py          микрофон (Vosk) и ввод с клавиатуры
-  system.py         окна, клавиши, клики, скриншоты, звук
+  voice.py          микрофон (Vosk), ввод с клавиатуры, ответы голосом
+  system.py         окна, клавиши, клики, скриншоты, звук, автозапуск
   vision.py         поиск кнопки на скриншоте
   actions/          действия: games.py — принять матч, web.py — открыть сайт
   backup.py         сохранение/восстановление настроек Windows
@@ -46,13 +45,13 @@ src/jarvis/
 tests/              pytest
 ```
 
-Новая команда — функция в `src/jarvis/actions/` плюс `registry.add(...)` в её `register()`.
+Новая команда — функция в `src/actions/` плюс `registry.add(...)` в её `register()`.
 
 Джарвис отвечает голосом через устройство вывода по умолчанию: «Успешно», если команда прошла,
 и «Ошибка», если нет. Чтобы он сказал причину, функция команды кидает `CommandError`:
 
 ```python
-from jarvis.core import CommandError
+from src.core import CommandError
 
 raise CommandError("Не нашёл окно Dota 2")   # Джарвис скажет: "Ошибка. Не нашёл окно Dota 2"
 ```

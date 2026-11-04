@@ -1,4 +1,4 @@
-"""Работа с Windows: окна, клавиши, мышь, скриншоты, звук."""
+"""Работа с Windows: окна, клавиши, мышь, скриншоты, звук, автозапуск."""
 
 import ctypes
 import time
@@ -12,9 +12,12 @@ import pyautogui
 import pygetwindow
 from PIL import Image, ImageGrab
 
+from src import paths
+
 ERROR_ALREADY_EXISTS = 183
 PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
 MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP = 0x0002, 0x0004
+WINDOW_MINIMIZED = 7  # окно консоли открывается свёрнутым на панель задач
 
 # Страховка pyautogui: падать, если мышь в углу экрана. Джарвису мешает — ты можешь быть вообще не за компьютером.
 pyautogui.FAILSAFE = False
@@ -124,3 +127,24 @@ def click(x: int, y: int) -> None:
     time.sleep(0.1)
 
     user32.SetCursorPos(cursor.x, cursor.y)
+
+
+def autostart_enabled(link: Path = paths.STARTUP_LINK) -> bool:
+    return link.exists()
+
+
+def enable_autostart(link: Path = paths.STARTUP_LINK) -> None:
+    """Создаёт ярлык Джарвиса в папке автозагрузки Windows."""
+    import comtypes.client
+
+    shell = comtypes.client.CreateObject("WScript.Shell", dynamic=True)
+    shortcut = shell.CreateShortcut(str(link))
+    shortcut.TargetPath = str(paths.JARVIS_EXE)
+    shortcut.WorkingDirectory = str(paths.PROJECT_ROOT)
+    shortcut.WindowStyle = WINDOW_MINIMIZED
+    shortcut.Description = "Голосовой помощник Джарвис"
+    shortcut.Save()
+
+
+def disable_autostart(link: Path = paths.STARTUP_LINK) -> None:
+    link.unlink(missing_ok=True)

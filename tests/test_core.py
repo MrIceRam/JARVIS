@@ -1,4 +1,4 @@
-from jarvis.core import Assistant, CommandError, CommandRegistry, HandleResult, normalize
+from src.core import Assistant, CommandError, CommandRegistry, HandleResult, normalize
 
 
 def test_normalize():

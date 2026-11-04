@@ -3,17 +3,17 @@
 import argparse
 from pathlib import Path
 
-from jarvis import autostart, backup, paths
+from src import backup, paths
 
 
 def run_assistant(text_mode: bool, model: Path) -> int:
-    from jarvis import actions, speech, voice
-    from jarvis.core import Assistant, CommandRegistry
-    from jarvis.system import already_running, play_sound
+    from src import actions, voice
+    from src.core import Assistant, CommandRegistry
+    from src.system import already_running, play_sound
 
     registry = CommandRegistry()
     actions.register_all(registry)
-    assistant = Assistant(registry, say=speech.say)
+    assistant = Assistant(registry, say=voice.say)
 
     if text_mode:
         phrases = voice.listen_console()
@@ -53,15 +53,17 @@ def run_backup(mode: str, only: str | None, storage: Path) -> int:
 
 
 def run_autostart(state: str | None) -> int:
+    from src.system import autostart_enabled, disable_autostart, enable_autostart
+
     if state == "on":
         if not paths.JARVIS_EXE.exists():
             print(f"Нет {paths.JARVIS_EXE}. Сначала выполни: uv sync")
             return 1
-        autostart.enable()
+        enable_autostart()
     elif state == "off":
-        autostart.disable()
+        disable_autostart()
 
-    print(f"Автозапуск {'включён' if autostart.is_enabled() else 'выключен'}")
+    print(f"Автозапуск {'включён' if autostart_enabled() else 'выключен'}")
     return 0
 
 
