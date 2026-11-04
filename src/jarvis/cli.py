@@ -3,13 +3,13 @@
 import argparse
 from pathlib import Path
 
-from jarvis import backup, paths
+from jarvis import autostart, backup, paths
 
 
 def run_assistant(text_mode: bool, model: Path) -> int:
     from jarvis import actions, speech, voice
     from jarvis.core import Assistant, CommandRegistry
-    from jarvis.system import play_sound
+    from jarvis.system import already_running, play_sound
 
     registry = CommandRegistry()
     actions.register_all(registry)
@@ -17,6 +17,10 @@ def run_assistant(text_mode: bool, model: Path) -> int:
 
     if text_mode:
         phrases = voice.listen_console()
+    elif already_running():
+        # Два Джарвиса на одном микрофоне выполняли бы каждую команду дважды
+        print("Джарвис уже запущен: его окно свёрнуто на панели задач.")
+        return 1
     elif model.exists():
         phrases = voice.listen_microphone(model, assistant.expected_phrases())
     else:
@@ -48,6 +52,19 @@ def run_backup(mode: str, only: str | None, storage: Path) -> int:
     return 0
 
 
+def run_autostart(state: str | None) -> int:
+    if state == "on":
+        if not paths.JARVIS_EXE.exists():
+            print(f"Нет {paths.JARVIS_EXE}. Сначала выполни: uv sync")
+            return 1
+        autostart.enable()
+    elif state == "off":
+        autostart.disable()
+
+    print(f"Автозапуск {'включён' if autostart.is_enabled() else 'выключен'}")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="jarvis", description="Голосовой помощник. Без команды — слушает микрофон.")
     parser.add_argument("--text", action="store_true", help="вводить фразы с клавиатуры вместо микрофона")
@@ -59,6 +76,8 @@ def main(argv: list[str] | None = None) -> int:
         p = sub.add_parser(name, help=help_text)
         p.add_argument("target", nargs="?", help="cursor / fonts / obs / davinci (без имени — все)")
         p.add_argument("--dir", type=Path, default=paths.DEFAULT_BACKUP_DIR, help="папка бэкапов")
+    p = sub.add_parser("autostart", help="запуск вместе с Windows")
+    p.add_argument("state", nargs="?", choices=["on", "off"], help="включить / выключить (без слова — показать)")
 
     args = parser.parse_args(argv)
     try:
@@ -68,6 +87,8 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command in ("backup", "restore"):
             return run_backup(args.command, args.target, args.dir)
+        if args.command == "autostart":
+            return run_autostart(args.state)
         return run_assistant(args.text, args.model)
     except KeyboardInterrupt:
         return 0

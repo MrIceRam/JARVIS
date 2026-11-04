@@ -23,6 +23,7 @@ uv run jarvis --text           то же, но фразы вводятся с к
 uv run jarvis list             что умеет сохранять
 uv run jarvis backup  [имя]    сохранить настройки (без имени — все)
 uv run jarvis restore [имя]    вернуть настройки после переустановки
+uv run jarvis autostart on     запускать вместе с Windows (off — выключить)
 uv run pytest                  тесты
 ```
 
@@ -33,11 +34,13 @@ uv run pytest                  тесты
 
 ```
 src/jarvis/
-  cli.py            команды jarvis / list / backup / restore
+  cli.py            команды jarvis / list / backup / restore / autostart
+  autostart.py      ярлык в автозагрузке Windows
   core.py           Assistant (обращение "Джарвис") и CommandRegistry (фраза -> действие)
   voice.py          микрофон (Vosk) и ввод с клавиатуры
-  system.py         окна, клавиши, звук
-  actions/          действия: games.py — принять матч
+  system.py         окна, клавиши, клики, скриншоты, звук
+  vision.py         поиск кнопки на скриншоте
+  actions/          действия: games.py — принять матч, web.py — открыть сайт
   backup.py         сохранение/восстановление настроек Windows
   assets/sounds/    звуки
 tests/              pytest
