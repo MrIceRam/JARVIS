@@ -31,6 +31,19 @@ def test_next_pack_goes_in_a_circle():
     assert cursors.next_pack(None) == names[0]
 
 
+def test_size_to_pixels_matches_windows():
+    assert cursors.size_to_pixels(1) == 32
+    assert cursors.size_to_pixels(4) == 80  # столько записано в реестре при размере 4
+    assert cursors.size_to_pixels(15) == 256
+
+
+def test_random_size_is_valid_and_not_current():
+    for _ in range(50):
+        size = cursors.random_size(4)
+        assert size != 4
+        assert cursors.MIN_SIZE <= size <= cursors.MAX_SIZE
+
+
 def test_random_pack_is_never_the_current_one():
     for _ in range(50):
         assert cursors.random_pack("dota") != "dota"

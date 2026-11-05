@@ -10,6 +10,10 @@ import winreg
 from src import paths
 
 CURSORS_KEY = r"Control Panel\Cursors"
+ACCESSIBILITY_KEY = r"SOFTWARE\Microsoft\Accessibility"
+
+# Размер как на ползунке в настройках Windows
+MIN_SIZE, MAX_SIZE = 1, 15
 
 # Роли курсоров в том порядке, в каком Windows хранит их в схеме
 ROLES = (
@@ -105,6 +109,39 @@ def next_pack(current: str | None) -> str:
 def random_pack(current: str | None) -> str:
     """Случайный пак, но не тот, что стоит сейчас: иначе команда выглядела бы как сломанная."""
     return random.choice([name for name in PACKS if name != current])
+
+
+def size_to_pixels(size: int) -> int:
+    """Ползунок Windows -> пиксели: 1 -> 32, 4 -> 80, 15 -> 256."""
+    return 32 + 16 * (size - 1)
+
+
+def current_size() -> int:
+    """Текущий размер с ползунка. На чистой Windows этого значения может не быть — тогда 1."""
+    try:
+        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, ACCESSIBILITY_KEY) as key:
+            return winreg.QueryValueEx(key, "CursorSize")[0]
+    except FileNotFoundError:
+        return MIN_SIZE
+
+
+def random_size(current: int) -> int:
+    """Случайный размер, но не текущий: иначе команда выглядела бы как сломанная."""
+    return random.choice([size for size in range(MIN_SIZE, MAX_SIZE + 1) if size != current])
+
+
+def set_size(size: int) -> None:
+    """Поменять размер без перезагрузки."""
+    SPI_SETCURSORSIZE, SPIF_UPDATE_AND_SEND = 0x2029, 0x03  # недокументированный вызов, им пользуются сами настройки
+    pixels = size_to_pixels(size)
+
+    with winreg.OpenKey(winreg.HKEY_CURRENT_USER, CURSORS_KEY, 0, winreg.KEY_SET_VALUE) as key:
+        winreg.SetValueEx(key, "CursorBaseSize", 0, winreg.REG_DWORD, pixels)
+    with winreg.CreateKey(winreg.HKEY_CURRENT_USER, ACCESSIBILITY_KEY) as key:
+        winreg.SetValueEx(key, "CursorSize", 0, winreg.REG_DWORD, size)  # иначе ползунок покажет старое значение
+
+    ctypes.windll.user32.SystemParametersInfoW(SPI_SETCURSORSIZE, 0, ctypes.c_void_p(pixels), SPIF_UPDATE_AND_SEND)
+    reload_cursors()
 
 
 def reload_cursors() -> None:

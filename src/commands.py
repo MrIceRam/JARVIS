@@ -7,6 +7,14 @@ from src.core import CommandError, CommandRegistry
 from src.system import capture, click, find_window, focused, press_key
 from src.vision import find_green_button
 
+DEFAULT_CURSOR_SIZE = 4  # твой размер курсора для команды "моя настройка"
+
+# Как числа звучат голосом: модель отдаёт слова, а не цифры. Место в списке — это размер.
+SIZE_WORDS = (
+    "один", "два", "три", "четыре", "пять", "шесть", "семь", "восемь",
+    "девять", "десять", "одиннадцать", "двенадцать", "тринадцать", "четырнадцать", "пятнадцать",
+)  # fmt: skip
+
 
 # ---------- Игры ----------
 
@@ -63,12 +71,28 @@ def random_cursor() -> None:
     change_cursor(cursors.random_pack(cursors.current_pack()))
 
 
+def change_cursor_size(size: int) -> None:
+    cursors.set_size(size)
+    print(f"[jarvis] размер курсора: {size}")
+
+
+def random_cursor_size() -> None:
+    change_cursor_size(cursors.random_size(cursors.current_size()))
+
+
+# ---------- Моя настройка ----------
+
+
+def my_settings() -> None:
+    change_cursor_size(DEFAULT_CURSOR_SIZE)
+
+
 # ---------- Список всех команд ----------
 
 
 def register_all(registry: CommandRegistry) -> None:
     # Игры
-    registry.add("dota.accept", ["прими катку", "прими игру", "прими доту"], accept_dota)
+    registry.add("dota.accept", ["прими катку в доте", "прими дотку", "прими доту"], accept_dota)
     registry.add("cs.accept", ["прими катку в кс", "прими кс", "прими контру"], accept_cs)
 
     # Сайты
@@ -86,3 +110,12 @@ def register_all(registry: CommandRegistry) -> None:
     registry.add("cursor.small", ["поменяй курсор на маленький"], lambda: change_cursor("small_edition_dark"))
     registry.add("cursor.next", ["поменяй на следующий курсор", "поменяй курсор на следующий"], next_cursor)
     registry.add("cursor.random", ["поменяй на случайный курсор", "поменяй курсор на случайный"], random_cursor)
+
+    # Размер курсора
+    for size, word in enumerate(SIZE_WORDS, start=1):
+        # size=size: без этого все команды поставили бы последний размер из цикла
+        registry.add(f"cursor.size.{size}", [f"поменяй размер курсора на {word}"], lambda size=size: change_cursor_size(size))
+    registry.add("cursor.size.random", ["поменяй размер курсора на случайный"], random_cursor_size)
+
+    # Моя настройка. Слова "дефолтная" модель не знает, но фразу "моя дефолтная настройка" слышит как "моя настройка"
+    registry.add("settings.mine", ["моя настройка", "мои настройки"], my_settings)

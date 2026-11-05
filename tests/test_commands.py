@@ -45,3 +45,34 @@ def test_cursor_phrases_pick_the_right_pack(monkeypatch):
         commands_by_phrase.find(phrase).action()
 
     assert applied == ["dota", "durck", "oxy-violet", "small_edition_dark", "durck"]
+
+
+def test_size_phrases_set_the_right_size(monkeypatch):
+    sizes = []
+    monkeypatch.setattr(cursors, "set_size", sizes.append)
+    found = registry()
+
+    found.find("поменяй размер курсора на один").action()
+    found.find("поменяй размер курсора на семь").action()
+    found.find("поменяй размер курсора на пятнадцать").action()
+
+    assert sizes == [1, 7, 15]  # если бы цикл сломался, тут были бы одни пятнадцать
+
+
+def test_random_size_phrase(monkeypatch):
+    sizes = []
+    monkeypatch.setattr(cursors, "set_size", sizes.append)
+    monkeypatch.setattr(cursors, "current_size", lambda: 4)
+
+    registry().find("поменяй размер курсора на случайный").action()
+
+    assert len(sizes) == 1 and sizes[0] != 4
+
+
+def test_my_settings_put_size_four_back(monkeypatch):
+    sizes = []
+    monkeypatch.setattr(cursors, "set_size", sizes.append)
+
+    registry().find("моя настройка").action()
+
+    assert sizes == [4]
