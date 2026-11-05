@@ -7,6 +7,7 @@ PACKAGE_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = PACKAGE_DIR.parent  # src -> корень репозитория
 
 START_SOUND = PACKAGE_DIR / "assets" / "sounds" / "JARVIS_start.wav"
+CURSORS_DIR = PACKAGE_DIR / "assets" / "cursors"
 
 # Модель Vosk качается отдельно: https://alphacephei.com/vosk/models
 DEFAULT_MODEL = PROJECT_ROOT / "models" / "vosk-model-small-ru-0.22"

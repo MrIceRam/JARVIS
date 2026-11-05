@@ -13,10 +13,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable
 
-
-def _apply_cursor() -> None:
-    SPI_SETCURSORS, SPIF_SENDCHANGE = 0x57, 0x02
-    ctypes.windll.user32.SystemParametersInfoW(SPI_SETCURSORS, 0, None, SPIF_SENDCHANGE)
+from src.cursors import reload_cursors
 
 
 def _notify_fonts_changed() -> None:
@@ -39,10 +36,9 @@ class BackupTarget:
 TARGETS = [
     BackupTarget(
         "cursor",
-        "Схема курсора мыши",
-        # TODO: копировать и сами файлы .cur/.ani, если схема лежит не в C:\Windows\Cursors
+        "Схема курсора мыши (только настройка, сами паки лежат в проекте: jarvis cursor)",
         registry_keys=[r"HKCU\Control Panel\Cursors"],
-        after_restore=_apply_cursor,
+        after_restore=reload_cursors,
     ),
     BackupTarget(
         "fonts",

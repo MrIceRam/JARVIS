@@ -7,12 +7,12 @@ from src import backup, paths
 
 
 def run_assistant(text_mode: bool, model: Path) -> int:
-    from src import actions, voice
+    from src import commands, voice
     from src.core import Assistant, CommandRegistry
     from src.system import already_running, play_sound
 
     registry = CommandRegistry()
-    actions.register_all(registry)
+    commands.register_all(registry)
     assistant = Assistant(registry, say=voice.say)
 
     if text_mode:
@@ -67,6 +67,24 @@ def run_autostart(state: str | None) -> int:
     return 0
 
 
+def run_cursor(name: str | None) -> int:
+    from src import cursors
+
+    if name is None:
+        print("Паки курсоров:")
+        for pack in cursors.PACKS:
+            print(f"  {pack}")
+        print("Поставить: jarvis cursor <имя>")
+        return 0
+    if name not in cursors.PACKS:
+        print(f"Нет такого пака: {name} (см. jarvis cursor)")
+        return 1
+
+    cursors.apply_pack(name)
+    print(f"Курсор {name} поставлен")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="jarvis", description="Голосовой помощник. Без команды — слушает микрофон.")
     parser.add_argument("--text", action="store_true", help="вводить фразы с клавиатуры вместо микрофона")
@@ -80,6 +98,8 @@ def main(argv: list[str] | None = None) -> int:
         p.add_argument("--dir", type=Path, default=paths.DEFAULT_BACKUP_DIR, help="папка бэкапов")
     p = sub.add_parser("autostart", help="запуск вместе с Windows")
     p.add_argument("state", nargs="?", choices=["on", "off"], help="включить / выключить (без слова — показать)")
+    p = sub.add_parser("cursor", help="поставить пак курсоров из проекта")
+    p.add_argument("name", nargs="?", help="имя пака (без имени — показать список)")
 
     args = parser.parse_args(argv)
     try:
@@ -91,6 +111,8 @@ def main(argv: list[str] | None = None) -> int:
             return run_backup(args.command, args.target, args.dir)
         if args.command == "autostart":
             return run_autostart(args.state)
+        if args.command == "cursor":
+            return run_cursor(args.name)
         return run_assistant(args.text, args.model)
     except KeyboardInterrupt:
         return 0

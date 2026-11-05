@@ -24,6 +24,7 @@ uv run jarvis list             что умеет сохранять
 uv run jarvis backup  [имя]    сохранить настройки (без имени — все)
 uv run jarvis restore [имя]    вернуть настройки после переустановки
 uv run jarvis autostart on     запускать вместе с Windows (off — выключить)
+uv run jarvis cursor [имя]     поставить пак курсоров (без имени — показать список)
 uv run pytest                  тесты
 ```
 
@@ -34,18 +35,19 @@ uv run pytest                  тесты
 
 ```
 src/
-  cli.py            команды jarvis / list / backup / restore / autostart
+  cli.py            команды jarvis / list / backup / restore / autostart / cursor
   core.py           Assistant (обращение "Джарвис") и CommandRegistry (фраза -> действие)
   voice.py          микрофон (Vosk), ввод с клавиатуры, ответы голосом
   system.py         окна, клавиши, клики, скриншоты, звук, автозапуск
   vision.py         поиск кнопки на скриншоте
-  actions/          действия: games.py — принять матч, web.py — открыть сайт
+  commands.py       все голосовые команды: игры, сайты, курсоры
   backup.py         сохранение/восстановление настроек Windows
-  assets/sounds/    звуки
+  cursors.py        установка паков курсоров
+  assets/           звуки и паки курсоров
 tests/              pytest
 ```
 
-Новая команда — функция в `src/actions/` плюс `registry.add(...)` в её `register()`.
+Новая команда — функция и строка `registry.add(...)` в `src/commands.py`.
 
 Джарвис отвечает голосом через устройство вывода по умолчанию: «Успешно», если команда прошла,
 и «Ошибка», если нет. Чтобы он сказал причину, функция команды кидает `CommandError`:
