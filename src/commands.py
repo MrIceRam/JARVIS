@@ -1,6 +1,7 @@
 import webbrowser
 
 import pygetwindow
+import subprocess #power shell
 
 from src import cursors, paths
 from src.core import CommandError, CommandRegistry
@@ -86,6 +87,20 @@ def random_cursor_size() -> None:
 def my_settings() -> None:
     change_cursor_size(DEFAULT_CURSOR_SIZE)
 
+    #отлючать дисплей НИКОГДА
+    script = "; ".join([
+        "powercfg /setacvalueindex SCHEME_CURRENT SUB_VIDEO VIDEOIDLE 0",
+        "powercfg /setdcvalueindex SCHEME_CURRENT SUB_VIDEO VIDEOIDLE 0",
+        "powercfg /setacvalueindex SCHEME_CURRENT SUB_SLEEP STANDBYIDLE 0",
+        "powercfg /setdcvalueindex SCHEME_CURRENT SUB_SLEEP STANDBYIDLE 0",
+        "powercfg /setacvalueindex SCHEME_CURRENT SUB_SLEEP HIBERNATEIDLE 0",
+        "powercfg /setdcvalueindex SCHEME_CURRENT SUB_SLEEP HIBERNATEIDLE 0",
+        "powercfg /setactive SCHEME_CURRENT",
+    ])
+    result = subprocess.run(
+        ["powershell", "-NoProfile", "-Command", script],
+        capture_output=True, text=True
+    )
 
 # ---------- Список всех команд ----------
 
@@ -93,23 +108,21 @@ def my_settings() -> None:
 def register_all(registry: CommandRegistry) -> None:
     # Игры
     registry.add("dota.accept", ["прими катку в доте", "прими дотку", "прими доту"], accept_dota)
-    registry.add("cs.accept", ["прими катку в кс", "прими кс", "прими контру"], accept_cs)
+    registry.add("cs.accept", ["прими катку в кс", "прими кс", "прими контру", "прими каэску"], accept_cs)
 
     # Сайты
-    registry.add("web.google", ["открой гугл"], lambda: open_site("https://www.google.com"))
-    registry.add("web.youtube", ["открой ютуб"], lambda: open_site("https://www.youtube.com"))
+    registry.add("web.google", ["открой гугл", "окрой гугол"], lambda: open_site("https://www.google.com"))
+    registry.add("web.youtube", ["открой ютуб", "открой ютубчик"], lambda: open_site("https://www.youtube.com"))
 
     # Курсоры
     registry.add("cursor.dota", ["поменяй курсор на доту", "поменяй курсор на дота"], lambda: change_cursor("dota"))
     registry.add("cursor.dark", ["поменяй курсор на дарк"], lambda: change_cursor("durck"))
-    registry.add(
-        "cursor.violet",
-        ["поменяй курсор на окси виолет", "поменяй курсор на виолет", "поменяй курсор на фиолетовый"],
+    registry.add("cursor.violet",["поменяй курсор на окси виолет", "поменяй курсор на виолет", "поменяй курсор на фиолетовый"],
         lambda: change_cursor("oxy-violet"),
     )
     registry.add("cursor.small", ["поменяй курсор на маленький"], lambda: change_cursor("small_edition_dark"))
     registry.add("cursor.next", ["поменяй на следующий курсор", "поменяй курсор на следующий"], next_cursor)
-    registry.add("cursor.random", ["поменяй на случайный курсор", "поменяй курсор на случайный"], random_cursor)
+    registry.add("cursor.random", ["поменяй на случайный курсор", "поменяй курсор на случайный", "курсор рандомный", "случайный курсор"], random_cursor)
 
     # Размер курсора
     for size, word in enumerate(SIZE_WORDS, start=1):
