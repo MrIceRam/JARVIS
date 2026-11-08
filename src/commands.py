@@ -102,6 +102,24 @@ def my_settings() -> None:
         capture_output=True, text=True
     )
 
+    # Уберает мусор с рабочего стала
+    script2 = (
+        "$k='HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\HideDesktopIcons\\NewStartPanel'; "
+        "if (!(Test-Path $k)) { New-Item $k -Force | Out-Null }; "
+        "Set-ItemProperty $k '{645FF040-5081-101B-9F08-00AA002F954E}' 1 -Type DWord; "  # Корзина
+        "Set-ItemProperty $k '{018D5C66-4533-4307-9B53-224DE2ED1FE6}' 1 -Type DWord; "  # OneDrive
+        "Set-ItemProperty $k '{2cc5ca98-6485-489a-920e-b3e88a6ccfe3}' 1 -Type DWord; "  # Spotlight
+        "$p='HKCU:\\Software\\Policies\\Microsoft\\Windows\\CloudContent'; "
+        "if (!(Test-Path $p)) { New-Item $p -Force | Out-Null }; "
+        "Set-ItemProperty $p 'DisableSpotlightCollectionOnDesktop' 1 -Type DWord; "
+        "Stop-Process -Name explorer -Force"
+    )
+
+    result = subprocess.run(
+        ["powershell", "-NoProfile", "-Command", script2],
+        capture_output=True, text=True
+    )
+    print(result.stderr)
 # ---------- Список всех команд ----------
 
 
@@ -130,5 +148,5 @@ def register_all(registry: CommandRegistry) -> None:
         registry.add(f"cursor.size.{size}", [f"поменяй размер курсора на {word}"], lambda size=size: change_cursor_size(size))
     registry.add("cursor.size.random", ["поменяй размер курсора на случайный"], random_cursor_size)
 
-    # Моя настройка. Слова "дефолтная" модель не знает, но фразу "моя дефолтная настройка" слышит как "моя настройка"
-    registry.add("settings.mine", ["моя настройка", "мои настройки"], my_settings)
+    # Моя настройка
+    registry.add("settings.mine", ["моя дефолтная настройка", "моя настройка", "мои настройки"], my_settings)

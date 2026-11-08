@@ -12,10 +12,41 @@ import queue
 import shutil
 import subprocess
 import sys
-from collections.abc import Iterator
+import tempfile
+import urllib.request
+import zipfile
+from collections.abc import Callable, Iterator
 from pathlib import Path
 
+from src import paths
+
 SAMPLE_RATE = 16000
+
+
+def _show_progress(blocks: int, block_size: int, total: int) -> None:
+    if total > 0:
+        percent = min(100, blocks * block_size * 100 // total)
+        print(f"\r  скачано {percent}%", end="", flush=True)
+
+
+def download_model(target: Path = paths.DEFAULT_MODEL, url: str = paths.MODEL_URL) -> None:
+    """Скачать и распаковать модель Vosk.
+
+    Всё делается во временной папке, а на место модель встаёт одним переименованием:
+    оборванная загрузка не оставит наполовину распакованную модель.
+    Тяжёлые необязательные части (paths.MODEL_SKIP) выбрасываются, чтобы модель грузилась быстро.
+    """
+    target.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(dir=target.parent) as folder:
+        archive = Path(folder) / "model.zip"
+        urllib.request.urlretrieve(url, archive, reporthook=_show_progress)
+        print()
+        with zipfile.ZipFile(archive) as model_zip:
+            model_zip.extractall(folder)
+        unpacked = Path(folder) / target.name
+        for part in paths.MODEL_SKIP:
+            shutil.rmtree(unpacked / part, ignore_errors=True)
+        unpacked.rename(target)
 
 
 def listen_console() -> Iterator[str]:
@@ -27,18 +58,20 @@ def listen_console() -> Iterator[str]:
             return
 
 
-def listen_microphone(model_path: Path, phrases: list[str]) -> Iterator[str]:
+def listen_microphone(model_path: Path, on_ready: Callable[[], None] | None = None) -> Iterator[str]:
     """Слушает микрофон по умолчанию и отдаёт распознанные фразы.
 
-    Распознаёт только phrases (грамматика Vosk), всё остальное приходит как пустая строка и пропускается.
+    Распознаёт любую речь, а не только команды: что услышано, то и отдаётся.
+    Какая это команда, решает уже core.py, и сравнивает он нечётко.
+    on_ready вызывается, когда модель загрузилась и микрофон включён — до этого Джарвис глухой.
     """
     # Импорт здесь, чтобы режим --text и тесты не грузили модель и звук
     import sounddevice
     import vosk
 
     vosk.SetLogLevel(-1)  # без простыни логов Kaldi
-    grammar = json.dumps([*phrases, "[unk]"], ensure_ascii=False)
-    recognizer = vosk.KaldiRecognizer(vosk.Model(str(model_path)), SAMPLE_RATE, grammar)
+    print("Загружаю модель распознавания...")
+    recognizer = vosk.KaldiRecognizer(vosk.Model(str(model_path)), SAMPLE_RATE)
     audio: queue.Queue[bytes] = queue.Queue()
 
     def on_audio(data, frames, time, status) -> None:
@@ -47,9 +80,11 @@ def listen_microphone(model_path: Path, phrases: list[str]) -> Iterator[str]:
     with sounddevice.RawInputStream(
         samplerate=SAMPLE_RATE, blocksize=8000, dtype="int16", channels=1, callback=on_audio
     ):
+        if on_ready:
+            on_ready()
         while True:
             if recognizer.AcceptWaveform(audio.get()):
-                text = json.loads(recognizer.Result())["text"].replace("[unk]", "").strip()
+                text = json.loads(recognizer.Result())["text"].strip()
                 if text:
                     yield text
 

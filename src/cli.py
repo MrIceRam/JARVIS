@@ -15,22 +15,26 @@ def run_assistant(text_mode: bool, model: Path) -> int:
     commands.register_all(registry)
     assistant = Assistant(registry, say=voice.say)
 
+    def ready() -> None:
+        """Звук запуска — только когда Джарвис правда готов слушать."""
+        play_sound(paths.START_SOUND)
+        print("Привет, я Джарвис. Слушаю. Выход — Ctrl+C.")
+
     if text_mode:
         phrases = voice.listen_console()
+        ready()
     elif already_running():
         # Два Джарвиса на одном микрофоне выполняли бы каждую команду дважды
         print("Джарвис уже запущен: его окно свёрнуто на панели задач.")
         return 1
     elif model.exists():
-        phrases = voice.listen_microphone(model, assistant.expected_phrases())
+        phrases = voice.listen_microphone(model, on_ready=ready)
     else:
         print(f"Нет модели Vosk: {model}")
-        print("Скачай vosk-model-small-ru-0.22 с https://alphacephei.com/vosk/models и распакуй в models/")
+        print("Скачай её командой: uv run jarvis setup")
         print("Или запусти с --text, чтобы вводить фразы с клавиатуры.")
         return 1
 
-    play_sound(paths.START_SOUND)
-    print("Привет, я Джарвис. Выход — Ctrl+C.")
     for heard in phrases:
         if not text_mode:
             print(f"[слышу] {heard}")
@@ -85,6 +89,26 @@ def run_cursor(name: str | None) -> int:
     return 0
 
 
+def run_setup(model: Path) -> int:
+    import zipfile
+
+    from src import voice
+
+    if model.exists():
+        print(f"Модель уже на месте: {model}")
+        return 0
+
+    print("Скачиваю модель Vosk: 1,8 ГБ, на диске останется около 1,4 ГБ. Это несколько минут...")
+    try:
+        voice.download_model(model)
+    except (OSError, zipfile.BadZipFile) as error:
+        print(f"\nНе удалось скачать модель: {error}")
+        print("Проверь интернет и запусти команду ещё раз.")
+        return 1
+    print(f"Готово: {model}")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="jarvis", description="Голосовой помощник. Без команды — слушает микрофон.")
     parser.add_argument("--text", action="store_true", help="вводить фразы с клавиатуры вместо микрофона")
@@ -100,6 +124,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("state", nargs="?", choices=["on", "off"], help="включить / выключить (без слова — показать)")
     p = sub.add_parser("cursor", help="поставить пак курсоров из проекта")
     p.add_argument("name", nargs="?", help="имя пака (без имени — показать список)")
+    sub.add_parser("setup", help="скачать модель распознавания речи")
 
     args = parser.parse_args(argv)
     try:
@@ -113,6 +138,8 @@ def main(argv: list[str] | None = None) -> int:
             return run_autostart(args.state)
         if args.command == "cursor":
             return run_cursor(args.name)
+        if args.command == "setup":
+            return run_setup(args.model)
         return run_assistant(args.text, args.model)
     except KeyboardInterrupt:
         return 0

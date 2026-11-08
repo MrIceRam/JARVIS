@@ -3,11 +3,22 @@
 import re
 import traceback
 from dataclasses import dataclass
+from difflib import SequenceMatcher
 from enum import Enum, auto
 from typing import Callable
 
-# Как распознаватель может услышать имя. Если Vosk слышит "Джарвис" по-другому — добавь вариант сюда.
+# Как распознаватель может услышать имя. Похожие слова ("жарвис", "дарвис") тоже подходят — см. WAKE_SIMILARITY.
 WAKE_WORDS = ("джарвис", "jarvis", "джервис", "жарвис")
+
+# Насколько похожим должно быть услышанное, от 0 до 1. Модель ошибается в отдельных буквах
+# ("катков до те" вместо "катку в доте" — 0.89), а посторонние фразы набирают меньше 0.5.
+MATCH_SIMILARITY = 0.75
+WAKE_SIMILARITY = 0.75
+
+
+def similarity(a: str, b: str) -> float:
+    """Похожесть двух строк: 1.0 — одинаковые, 0 — ничего общего."""
+    return SequenceMatcher(None, a, b).ratio()
 
 
 def normalize(text: str) -> str:
@@ -46,18 +57,41 @@ class CommandRegistry:
         return decorator
 
     def find(self, text: str) -> Command | None:
-        """Ищет команду, фраза которой целиком (по словам) есть в тексте.
+        """Ищет команду, фраза которой больше всего похожа на кусок текста.
 
-        Если подходят несколько — берётся самая длинная фраза,
-        чтобы "прими катку в кс" не сработало как просто "прими катку".
+        Совпадать буква в букву не обязательно: модель может услышать "катков" вместо "катку".
+        Побеждает самая похожая фраза, при равенстве — самая длинная,
+        чтобы "прими катку в кс" не сработало как просто "прими кс".
         """
-        haystack = f" {normalize(text)} "  # пробелы по краям — ищем только целые слова
-        best, best_length = None, 0
+        command, score = self.best_match(text)
+        return command if score >= MATCH_SIMILARITY else None
+
+    def best_match(self, text: str) -> tuple[Command | None, float]:
+        """Самая похожая команда и её оценка, даже если она ниже порога (для отладки)."""
+        words = normalize(text).split()
+        best, best_score, best_length = None, 0.0, 0
         for command in self.commands:
             for phrase in command.phrases:
-                if len(phrase) > best_length and f" {phrase} " in haystack:
-                    best, best_length = command, len(phrase)
-        return best
+                score = _phrase_similarity(words, phrase)
+                if (score, len(phrase)) > (best_score, best_length):
+                    best, best_score, best_length = command, score, len(phrase)
+        return best, best_score
+
+
+def _phrase_similarity(words: list[str], phrase: str) -> float:
+    """Сравнивает фразу с каждым куском текста примерно той же длины и берёт лучший.
+
+    Длина куска плюс-минус одно слово: модель иногда склеивает или разрывает слова
+    ("доте" -> "до те").
+    """
+    length = len(phrase.split())
+    best = 0.0
+    for size in (length - 1, length, length + 1):
+        if size < 1:
+            continue
+        for start in range(max(1, len(words) - size + 1)):
+            best = max(best, similarity(" ".join(words[start : start + size]), phrase))
+    return best
 
 
 class CommandError(Exception):
@@ -81,26 +115,20 @@ class Assistant:
         self.registry = registry
         self.say = say  # в программе — voice.say (голосом), в тестах — сбор ответов в список
 
-    def expected_phrases(self) -> list[str]:
-        """Всё, что имеет смысл распознавать: "джарвис" и "джарвис <команда>".
-
-        Отдаётся в Vosk как грамматика — с ней маленькая модель не путает "катку" с "кадкой".
-        """
-        wake = WAKE_WORDS[0]
-        return [wake] + [f"{wake} {phrase}" for command in self.registry.commands for phrase in command.phrases]
-
     def handle(self, heard: str) -> HandleResult:
         words = normalize(heard).split()
-        wake_index = next((i for i, word in enumerate(words) if word in WAKE_WORDS), None)
+        wake_index = next((i for i, word in enumerate(words) if _is_wake_word(word)), None)
         if wake_index is None:
             return HandleResult.IGNORED
 
-        command = self.registry.find(" ".join(words[wake_index + 1 :]))
-        if command is None:
+        command, score = self.registry.best_match(" ".join(words[wake_index + 1 :]))
+        if command is None or score < MATCH_SIMILARITY:
+            if command is not None:
+                print(f"[jarvis] ближе всего {command.name}, но похожесть {score:.2f} — мало")
             self.say("Не понял команду")
             return HandleResult.UNKNOWN
 
-        print(f"[jarvis] {command.name}")
+        print(f"[jarvis] {command.name} (похожесть {score:.2f})")
         try:
             command.action()
         except CommandError as error:
@@ -113,3 +141,7 @@ class Assistant:
 
         self.say("Успешно")
         return HandleResult.EXECUTED
+
+
+def _is_wake_word(word: str) -> bool:
+    return any(similarity(word, wake) >= WAKE_SIMILARITY for wake in WAKE_WORDS)
