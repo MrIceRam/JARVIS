@@ -113,7 +113,7 @@ def my_settings() -> None:
         "if (!(Test-Path $p)) { New-Item $p -Force | Out-Null }; "
         "Set-ItemProperty $p 'DisableSpotlightCollectionOnDesktop' 1 -Type DWord; "
         "Stop-Process -Name explorer -Force"
-    )
+    )#"Set-ItemProperty -Path \"HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced\" -Name \"LaunchTo\" -Value 1; " Мой компьютер в проводнике
 
     result = subprocess.run(
         ["powershell", "-NoProfile", "-Command", script2],
